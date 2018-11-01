@@ -3,6 +3,7 @@
 
 #include "reflexstatemachine.h"
 #include "reflex.h"
+#include "events.h"
 
 
 
@@ -17,6 +18,7 @@ public: //states
         EM_TankEmptied = 5,
         EM_Fault_ColumnLevel = 6,
         EM_Fault_EmptyTank = 7,
+        EM_Fault_Receiver_Full = 8,
     };
 
     enum eMainStates{
@@ -33,10 +35,27 @@ public: //states
             closeAllMainValves();
         }
 
-        void loop(){
-            if(readButton(Reflex::eButtons::EB_PLAY)){
-                this->machine->changeState(EMS_Tank1);
+        void event(byte event_type, byte param1, byte param2){
+            if(event_type == Reflex::EE_BUTTONDOWN){
+                switch(param2){
+                case Reflex::EB_PLAY:{
+                    this->machine->changeState(EMS_Tank1);
+                    return 1;
+                }break;
+                case Reflex::EB_PAUSE:{
+                    this->machine->changeState(EMS_Suspend);
+                    return 1;
+                }break;
+                case Reflex::EB_STOP:{
+                    this->machine->changeState(EMS_Idle);
+                    return 1;
+                }break;
+                };
             }
+            return 0;
+        }
+
+        void loop(){
         }
     };
 
@@ -67,16 +86,29 @@ public: //states
                 is_last = (message == EM_LastTank);
         }
 
+        void event(byte event_type, byte param1, byte param2){
+            if(event_type == Reflex::EE_BUTTONDOWN){
+                switch(param2){
+                case Reflex::EB_PLAY:{
+                    if (!is_last) {
+                        this->machine->changeState(next_state, EM_Skipped);
+                        return 1;
+                    }
+                }break;
+                case Reflex::EB_PAUSE:{
+                    this->machine->changeState(EMS_Suspend);
+                    return 1;
+                }break;
+                case Reflex::EB_STOP:{
+                    this->machine->changeState(EMS_Idle);
+                    return 1;
+                }break;
+                };
+            }
+            return 0;
+        }
+
         void loop(){
-            if(readButton(Reflex::eButtons::EB_STOP)){
-                this->machine->changeState(EMS_Idle);
-            }
-            if(readButton(Reflex::eButtons::EB_PAUSE)){
-                this->machine->changeState(EMS_Suspend);
-            }
-            if(readButton(Reflex::eButtons::EB_PLAY) && !is_last){
-                this->machine->changeState(next_state, EM_Skipped);
-            }
             if(readMainSensor(sensor) == 0){
                 if(is_last)
                     this->machine->changeState(EMS_Idle, EM_Finished);
@@ -85,6 +117,9 @@ public: //states
             }
             if(readMainSensor(Reflex::eMainSensors::EMS_COLUMN) == 0){
                 this->machine->changeState(EMS_Fault, EM_Fault_ColumnLevel);
+            }
+            if (readMainSensor(Reflex::eMainSensors::EMS_RECEIVER) == 0){
+                this->machine->changeState(EMS_Fault, EM_Fault_Receiver_Full);
             }
         }
 
@@ -99,13 +134,20 @@ public: //states
             last_state = from_state.state_number;
         }
 
-        virtual void loop(){
-            if(readButton(Reflex::eButtons::EB_STOP)){
-                this->machine->changeState(EMS_Idle);
+        void event(byte event_type, byte param1, byte param2){
+            if(event_type == Reflex::EE_BUTTONDOWN){
+                switch(param2){
+                case Reflex::EB_PLAY:{
+                    this->machine->changeState(last_state, EM_Resume);
+                    return 1;
+                }break;
+                case Reflex::EB_STOP:{
+                    this->machine->changeState(EMS_Idle);
+                    return 1;
+                }break;
+                };
             }
-            if(readButton(Reflex::eButtons::EB_PLAY) && !no_next){
-                this->machine->changeState(last_state, EM_Resume);
-            }
+            return 0;
         }
     };
 
@@ -113,20 +155,21 @@ public: //states
         void onEnter(State& from_state, byte message){
             SuspendState::onEnter(from_state, message);
 
-            static const char* spgm_columnlevel [] PROGMEM = "Fault: column level low";
             if(message == EM_Fault_ColumnLevel)
-                Log::logln_pgm(spgm_columnlevel);
+                Log::logLn(F("Fault: column level low"));
 
-            static const char* spgm_emptytank [] PROGMEM = "Fault: tank empty";
             if(message == EM_Fault_EmptyTank)
-                Log::logln_pgm(spgm_emptytank);
+                Log::logLn(F("Fault: tank empty"));
+
+            if(message == EM_Fault_Receiver_Full)
+                Log::logLn(F("Fault: receiver full"));
         }
     };
 
 
 
 public:
-    virtual init(char system, char *pgm_name) /*override*/ {
+    virtual init(byte system, __FlashStringHelper* pgm_name) /*override*/ {
         ReflexStateMachine::init(system, pgm_name);
 
         addState(new IdleState);
@@ -142,6 +185,12 @@ public:
         ));
         addState(new SuspendState());
         addState(new FaultState());
+    }
+    virtual void event(byte event, byte param1, byte param2){
+        if(param1 == this->system)
+            return ReflexStateMachine::event(event, param1, param2);
+        else
+            return 0;
     }
 };
 

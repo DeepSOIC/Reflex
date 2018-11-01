@@ -49,11 +49,11 @@ public:
         for(byte ibut = 0; ibut < Reflex::N_BUTTONS; ++i){
             mask = 1 << ibut;
             if ((old_state & mask) && !(new_state & mask)){
-                this->host->event(Reflex::EE_BUTTONUP, ibut, 0);
+                this->host->event(Reflex::EE_BUTTONUP, active_system, ibut);
             } else if (!(old_state & mask) && (new_state & mask)) {
-                Log::log(F("Button pressed:"));
-                Log::logLn(ibut);
-                this->host->fireEvent(Reflex::EE_BUTTONDOWN, ibut, 0);
+                Log::log(F("Button pressed: "));
+                Log::log(active_system); Log::log_ram("."); Log::logLn(ibut);
+                this->host->fireEvent(Reflex::EE_BUTTONDOWN, active_system, ibut);
             }
         }
     }

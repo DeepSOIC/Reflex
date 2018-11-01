@@ -20,7 +20,7 @@ enum eMainSensors {
     EMS_COLUMN, //safety sensor
     EMS_TANK1, //level in first tank
     EMS_TANK2, //level in second tank
-    EMS_RECIEVER, //level in receiver tank
+    EMS_RECEIVER, //level in receiver tank
     N_MAIN_SENSORS
 };
 
@@ -257,6 +257,7 @@ byte getLEDPin(eButtons button){
     byte* pp = &(p[button]);
     return pgm_read_byte(pp);
 }
+
 /**
  * @brief readButton: reads button state. The buttons from currently selected system are read. Select the system by calling selectSystemMux() first.
  * @param button: which button to read
@@ -272,6 +273,10 @@ byte readButton(eButtons button){
 void initButtons(){
     for(byte ibutton = 0; ibutton < N_BUTTONS; ++i){
         pinMode(getButtonPin(ibutton), INPUT);
+        pinMode(getLEDPin(ibutton), INPUT);
+    }
+    for(byte isys = 0; isys<N_SYSTEMS; ++isys){
+        pinMode(getSystemMuxPin(isys), OUTPUT);
     }
 }
 

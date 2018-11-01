@@ -34,13 +34,13 @@ public:
 class ReflexStateMachine : public StateMachine
 {
 public: //members
-    char system = 0;
+    byte system = 0;
     const __FlashStringHelper* pgm_name;
 
 public: //methods
     ReflexStateMachine();
 
-    virtual void init(char system, const __FlashStringHelper* pgm_name){
+    virtual void init(byte system, const __FlashStringHelper* pgm_name){
         this->system = system;
         this->pgm_name = pgm_name;
     }
