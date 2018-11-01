@@ -25,6 +25,14 @@ void _printPGM(Print &p, const char* pgm_s){
   );
 }
 
+void log(const __FlashStringHelper* str){
+    Serial.print(str);
+}
+
+void logLn(const __FlashStringHelper* str){
+    Serial.println(str);
+}
+
 void log_pgm(const char* pgm_s){
     _printPGM(Serial, pgm_s);
 }
