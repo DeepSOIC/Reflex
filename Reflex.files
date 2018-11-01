@@ -7,3 +7,5 @@ reflex.h
 logging.h
 maincontrol.h
 thread.h
+keyboard.h
+events.h
