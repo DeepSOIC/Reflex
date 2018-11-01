@@ -2,10 +2,10 @@
 #define KEYBOARD
 
 #include <Arduino.h>
-#include "thread.h"
+#include "reflex_thread.h"
 #include "reflex.h"
-#include "events.h"
-#include "logging.h"
+#include "reflex_events.h"
+#include "reflex_logging.h"
 
 class ButtonWatcher: public Thread
 {
@@ -46,8 +46,8 @@ public:
     }
 
     void keyStateChanged(byte old_state, byte new_state){
-        for(byte ibut = 0; ibut < Reflex::N_BUTTONS; ++i){
-            mask = 1 << ibut;
+        for(byte ibut = 0; ibut < Reflex::N_BUTTONS; ++ibut){
+            byte mask = 1 << ibut;
             if ((old_state & mask) && !(new_state & mask)){
                 this->host->event(Reflex::EE_BUTTONUP, active_system, ibut);
             } else if (!(old_state & mask) && (new_state & mask)) {
@@ -68,4 +68,3 @@ public:
 };
 
 #endif // KEYBOARD
-

@@ -24,14 +24,14 @@ enum eMainSensors {
     N_MAIN_SENSORS
 };
 
-byte main_sensors_L[] PROGMEM = {
+const byte main_sensors_L[] PROGMEM = {
     2,
     3,
     4,
     5
 };
 
-byte main_sensors_R[] PROGMEM = {
+const byte main_sensors_R[] PROGMEM = {
     8,
     9,
     10,
@@ -62,7 +62,7 @@ byte readMainSensor(eSystems sys, eMainSensors sensor){
 }
 
 void initMainSensors(){
-    for(byte isensor = 0; isensor < N_MAIN_SENSORS; ++i){
+    for(byte isensor = 0; isensor < N_MAIN_SENSORS; ++isensor){
         pinMode(getMainSensorPin(ES_L, isensor), INPUT);
         digitalWrite(getMainSensorPin(ES_L, isensor), LOW); //ensure no pull-up
         pinMode(getMainSensorPin(ES_R, isensor), INPUT);
@@ -80,13 +80,13 @@ enum eMainValves{
 };
 
 
-byte main_valves_L[] PROGMEM = {
+const byte main_valves_L[] PROGMEM = {
     PIN_A5,
     PIN_A4,
     PIN_A3,
 };
 
-byte main_valves_R[] PROGMEM = {
+const byte main_valves_R[] PROGMEM = {
     PIN_A2,
     PIN_A1,
     PIN_A0,
@@ -95,7 +95,7 @@ byte main_valves_R[] PROGMEM = {
 byte getMainValvePin(eSystems sys, eMainValves valve){
     if (sys == ES_L || sys != ES_R)
         return PIN_UNDEFINED;
-    if (sensor < 0 || sensor > N_MAIN_VALVES-1)
+    if (valve < 0 || valve > N_MAIN_VALVES-1)
         return PIN_UNDEFINED;
     byte* p = sys == ES_L ? main_valves_L : main_valves_R;
     byte* pp = &(p[valve]);
@@ -125,9 +125,12 @@ byte openMainValve(eSystems sys, eMainValves valve){
     return setMainValve(sys, valve, 1);
 }
 
-void closeAllMainValves(eSystems sys){
+byte closeAllMainValves(eSystems sys){
+    if (sys > N_SYSTEMS)
+        return 0;
     for (byte ivalve = 0; ivalve < N_MAIN_VALVES; ++ivalve)
         closeMainValve(sys, ivalve);
+    return 1;
 }
 
 byte initMainValves(){
@@ -174,16 +177,16 @@ enum eButtons {
     N_BUTTONS
 };
 
-byte button_pins[] PROGMEM = {
-    PIN_A15,//FIXME
-    PIN_A14,
-    PIN_A13,
+const byte button_pins[] PROGMEM = {
+    14,
+    15,
+    16,
 };
 
-byte led_pins[] PROGMEM = {
-    PIN_A15,
-    PIN_A14,
-    PIN_A13,
+const byte led_pins[] PROGMEM = {
+    PIN_A8,
+    PIN_A9,
+    PIN_A10,
 };
 
 static byte led_state[4] = {0};
@@ -198,11 +201,28 @@ byte getButtonPin(eButtons button){
 
 byte getSystemMuxPin(eSystems sys){
     if(sys == ES_L)
-        return PIN_9;//fixme!
+        return 17;
     else if (sys == ES_R)
-        return PIN_10;//fixme!
+        return 18;
     else
         return PIN_UNDEFINED;
+}
+
+byte getLEDPin(eButtons button){
+    if (button < 0 || button > N_BUTTONS-1)
+        return PIN_UNDEFINED;
+    byte* p =  led_pins;
+    byte* pp = &(p[button]);
+    return pgm_read_byte(pp);
+}
+
+byte updateLEDs(eSystems system){
+    byte state = 0;
+    state = led_state[system];
+    for(byte iled = 0; iled < N_BUTTONS; ++iled){
+        digitalWrite(getLEDPin(iled), (state >> iled) & 1 ? LOW : HIGH);
+    }
+    return 1;
 }
 
 byte selectSystemMux(eSystems sys){
@@ -212,20 +232,6 @@ byte selectSystemMux(eSystems sys){
         digitalWrite(getSystemMuxPin(isys), isys == sys ? HIGH : LOW);
     }
     updateLEDs(sys);
-    return 1;
-}
-
-byte updateLEDs(eSystems system){
-    byte ptr = 0;
-    if(system == ES_L)
-        ptr = &(led_state[0]);
-    else if (system == ES_R)
-        ptr = &(led_state[1]);
-    else
-        return 0;
-    for(byte iled = 0; iled < N_BUTTONS; ++iled){
-        digitalWrite(getLEDPin(iled), (*ptr << iled) & 1 ? LOW : HIGH);
-    }
     return 1;
 }
 
@@ -239,23 +245,10 @@ byte updateLEDs(eSystems system){
  * @return 1 if successful, 0 if error.
  */
 byte setLED(eSystems sys, eButtons button, byte state){
-    if(system == ES_L)
-        ptr = &(led_state[0]);
-    else if (system == ES_R)
-        ptr = &(led_state[1]);
-    else
-        return 0;
-    byte mask = (byte)(1) >> button;
+    byte* ptr = &(led_state[sys]);
+    byte mask = (byte)(1) << button;
     *ptr = *ptr & ~mask | (state ? B111 : 0) & mask;
     return 1;
-}
-
-byte getLEDPin(eButtons button){
-    if (button < 0 || button > N_BUTTONS-1)
-        return PIN_UNDEFINED;
-    byte* p =  led_pins;
-    byte* pp = &(p[button]);
-    return pgm_read_byte(pp);
 }
 
 /**
@@ -271,7 +264,7 @@ byte readButton(eButtons button){
 }
 
 void initButtons(){
-    for(byte ibutton = 0; ibutton < N_BUTTONS; ++i){
+    for(byte ibutton = 0; ibutton < N_BUTTONS; ++ibutton){
         pinMode(getButtonPin(ibutton), INPUT);
         pinMode(getLEDPin(ibutton), INPUT);
     }

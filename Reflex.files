@@ -1,9 +1,9 @@
 main.cpp
-statemachine.h
-reflexstatemachine.h
+reflex_statemachine.h
+reflex_rstatemachine.h
 reflex.h
-logging.h
-maincontrol.h
-thread.h
-keyboard.h
-events.h
+reflex_logging.h
+reflex_maincontrol.h
+reflex_thread.h
+reflex_keyboard.h
+reflex_events.h

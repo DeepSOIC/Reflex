@@ -1,9 +1,9 @@
 #ifndef MAINCONTROL_H
 #define MAINCONTROL_H
 
-#include "reflexstatemachine.h"
+#include "reflex_rstatemachine.h"
 #include "reflex.h"
-#include "events.h"
+#include "reflex_events.h"
 
 
 
@@ -31,11 +31,11 @@ public: //states
 
     class IdleState: public ReflexState {
     public:
-        void onEnter(State& from_state, byte message) {
+        void onEnter(State* from_state, byte message) {
             closeAllMainValves();
         }
 
-        void event(byte event_type, byte param1, byte param2){
+        byte event(byte event_type, byte param1, byte param2){
             if(event_type == Reflex::EE_BUTTONDOWN){
                 switch(param2){
                 case Reflex::EB_PLAY:{
@@ -74,7 +74,7 @@ public: //states
             this->next_state = next_state;
         }
 
-        void onEnter(State& from_state, byte message){
+        void onEnter(State* from_state, byte message){
             closeAllMainValves();
             if(readMainSensor(sensor) == 0){
                 this->machine->changeState(EMS_Fault, EM_Fault_EmptyTank);
@@ -86,7 +86,7 @@ public: //states
                 is_last = (message == EM_LastTank);
         }
 
-        void event(byte event_type, byte param1, byte param2){
+        byte event(byte event_type, byte param1, byte param2){
             if(event_type == Reflex::EE_BUTTONDOWN){
                 switch(param2){
                 case Reflex::EB_PLAY:{
@@ -129,12 +129,12 @@ public: //states
     public:
         byte last_state;
 
-        virtual void onEnter(State& from_state, byte message){
+        virtual void onEnter(State* from_state, byte message){
             closeAllMainValves();
-            last_state = from_state.state_number;
+            last_state = from_state->state_number;
         }
 
-        void event(byte event_type, byte param1, byte param2){
+        byte event(byte event_type, byte param1, byte param2){
             if(event_type == Reflex::EE_BUTTONDOWN){
                 switch(param2){
                 case Reflex::EB_PLAY:{
@@ -149,10 +149,12 @@ public: //states
             }
             return 0;
         }
+
+        void loop(){}
     };
 
     class FaultState: public SuspendState {
-        void onEnter(State& from_state, byte message){
+        void onEnter(State* from_state, byte message){
             SuspendState::onEnter(from_state, message);
 
             if(message == EM_Fault_ColumnLevel)
@@ -186,7 +188,7 @@ public:
         addState(new SuspendState());
         addState(new FaultState());
     }
-    virtual void event(byte event, byte param1, byte param2){
+    virtual byte event(byte event, byte param1, byte param2){
         if(param1 == this->system)
             return ReflexStateMachine::event(event, param1, param2);
         else
@@ -195,4 +197,3 @@ public:
 };
 
 #endif // MAINCONTROL_H
-

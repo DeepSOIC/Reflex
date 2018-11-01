@@ -34,7 +34,7 @@ class Host: public Thread
 {
 public:
     static const byte MAX_THREADS = 8;
-    Thread* threads[MAX_THREADS] = 0;
+    Thread* threads[MAX_THREADS] = {0};
     byte n_threads = 0;
 
     virtual void loop() {
@@ -70,6 +70,14 @@ public:
             return host->fireEvent(event, param1, param2);
         else
             return host->event(event, param1, param2);
+    }
+
+    virtual ~Host(){
+        for(byte i = 0; i < n_threads; ++i){
+            delete threads[i];
+            threads[i] = 0;
+        }
+        n_threads = 0;
     }
 };
 

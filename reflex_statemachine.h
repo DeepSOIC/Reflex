@@ -2,7 +2,7 @@
 #define STATEMACHINE_H
 
 #include <Arduino.h>
-#include "thread.h"
+#include "reflex_thread.h"
 
 class State;
 class StateMachine;
@@ -17,7 +17,7 @@ public: //members
 public: //methods
     State(){}
 
-    void attach(StateMachine& sm, state_number) {
+    void attach(StateMachine& sm, byte state_number) {
         this->machine = &sm;
         this->state_number = state_number;
     }
@@ -53,7 +53,7 @@ public: //members
     byte message = 0; //message passed by the old state to the new state
 
 public:
-    StateMachine();
+    StateMachine(){}
     virtual ~StateMachine(){
         for(byte i = 0; i < n_states; ++i){
             delete states[i];
@@ -104,7 +104,7 @@ protected: //interface
         this->current_state = this->pending_state;
         this->about_to_change_state = 0;
         if (pc_new_state)
-            pc_new_state->onEnter(*pc_old_state);
+            pc_new_state->onEnter(pc_old_state, this->message);
         this->stateChanged(old_state);
     }
 
@@ -114,7 +114,7 @@ public: //other methods
      * @brief getStateNumber: finds a state object and returns its number. If not found, returns State::UNDEFINED.
      * @param pc_state
      */
-    void getStateNumber(State* pc_state){
+    byte getStateNumber(State* pc_state){
         for(byte i = 0; i < n_states; ++i){
             if (states[i] == pc_state)
                 return i;
