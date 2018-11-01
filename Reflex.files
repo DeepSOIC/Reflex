@@ -6,3 +6,4 @@ reflexstatemachine.cpp
 reflex.h
 logging.h
 maincontrol.h
+thread.h

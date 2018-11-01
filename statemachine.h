@@ -2,6 +2,7 @@
 #define STATEMACHINE_H
 
 #include <Arduino.h>
+#include "thread.h"
 
 class State;
 class StateMachine;
@@ -40,7 +41,7 @@ public: //methods
     virtual byte event(byte event_type, byte param1, byte param2) {return 0;}
 };
 
-class StateMachine
+class StateMachine: public Thread
 {
 public: //members
     static const byte MAX_STATES = 16;
@@ -65,7 +66,7 @@ public: //interface
 
     virtual void stateChanged(byte old_state_number){};
 
-    virtual void poll(){
+    virtual void loop(){
         if (about_to_change_state){
             _changeState();
         } else {
@@ -83,9 +84,6 @@ public: //interface
         ++n_states;
         pc_state->attach(*this, new_state);
     }
-
-    virtual byte event(byte event, byte param1, byte param2){return 0;}
-
 
 protected: //interface
     /**
@@ -152,10 +150,11 @@ public: //other methods
 
     }
 
-    byte sendEvent(byte event_type, byte param1, byte param2){
-        byte ret = this->event(event_type, param1, param2);
-        if (ret)
-            return ret;
+    byte event(byte event, byte param1, byte param2){
+        return sendEventToStates(event, param1, param2);
+    }
+
+    byte sendEventToStates(byte event_type, byte param1, byte param2){
         if (current_state == State::UNDEFINED)
             return 0;
         return getStatePtr(current_state)->event(event_type, param1, param2);
