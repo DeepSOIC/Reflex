@@ -2,6 +2,7 @@
 #define REFLEX_H
 
 #include <Arduino.h>
+#include "reflex_logging.h"
 
 namespace Reflex{
 
@@ -39,7 +40,7 @@ const byte main_sensors_R[] PROGMEM = {
 };
 
 byte getMainSensorPin(eSystems sys, eMainSensors sensor){
-    if (sys == ES_L || sys != ES_R)
+    if (sys != ES_L && sys != ES_R)
         return PIN_UNDEFINED;
     if (sensor < 0 || sensor > N_MAIN_SENSORS-1)
         return PIN_UNDEFINED;
@@ -81,19 +82,19 @@ enum eMainValves{
 
 
 const byte main_valves_L[] PROGMEM = {
+    PIN_A3,
     PIN_A5,
     PIN_A4,
-    PIN_A3,
 };
 
 const byte main_valves_R[] PROGMEM = {
+    PIN_A0,
     PIN_A2,
     PIN_A1,
-    PIN_A0,
 };
 
 byte getMainValvePin(eSystems sys, eMainValves valve){
-    if (sys == ES_L || sys != ES_R)
+    if (sys != ES_L && sys != ES_R)
         return PIN_UNDEFINED;
     if (valve < 0 || valve > N_MAIN_VALVES-1)
         return PIN_UNDEFINED;
@@ -229,9 +230,13 @@ byte selectSystemMux(eSystems sys){
     if (sys >= N_SYSTEMS)
         return 0;
     for(byte isys = 0; isys < N_SYSTEMS; isys++){
-        digitalWrite(getSystemMuxPin(isys), isys == sys ? HIGH : LOW);
+        pinMode(getSystemMuxPin(isys), INPUT);
     }
     updateLEDs(sys);
+    for(byte isys = 0; isys < N_SYSTEMS; isys++){
+        digitalWrite(getSystemMuxPin(isys), isys == sys ? HIGH : LOW);
+        pinMode(getSystemMuxPin(isys), isys == sys ? OUTPUT : INPUT);
+    }
     return 1;
 }
 
@@ -266,7 +271,7 @@ byte readButton(eButtons button){
 void initButtons(){
     for(byte ibutton = 0; ibutton < N_BUTTONS; ++ibutton){
         pinMode(getButtonPin(ibutton), INPUT);
-        pinMode(getLEDPin(ibutton), INPUT);
+        pinMode(getLEDPin(ibutton), OUTPUT);
     }
     for(byte isys = 0; isys<N_SYSTEMS; ++isys){
         pinMode(getSystemMuxPin(isys), OUTPUT);

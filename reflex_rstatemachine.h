@@ -48,6 +48,9 @@ public:
     byte closeAllMainValves() {
         return Reflex::closeAllMainValves(this->myMachine()->system);
     }
+    byte setLED(Reflex::eButtons button, byte val){
+        return Reflex::setLED(this->myMachine()->system, button, val);
+    }
 };
 
 ReflexStateMachine* ReflexState::myMachine(){

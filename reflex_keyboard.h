@@ -28,6 +28,8 @@ public:
         active_system = active_system % Reflex::N_SYSTEMS;
         Reflex::selectSystemMux(active_system);
 
+        delayMicroseconds(100);
+
         _Data &d = this->data[active_system];
 
         byte new_state = getState();
@@ -54,6 +56,7 @@ public:
                 Log::log(F("Button pressed: "));
                 Log::log(active_system); Log::log_ram("."); Log::logLn(ibut);
                 this->host->fireEvent(Reflex::EE_BUTTONDOWN, active_system, ibut);
+                debug(F("fired"));
             }
         }
     }
@@ -61,8 +64,10 @@ public:
     static byte getState(){
         byte s = 0;
         for(byte ibut = 0; ibut < Reflex::N_BUTTONS; ++ibut){
-            s = s << 1 & Reflex::readButton(ibut);
-        }
+            byte mask = 1 << ibut;
+            if (Reflex::readButton(ibut))
+                s = s | mask;
+        };
         return s;
     }
 };

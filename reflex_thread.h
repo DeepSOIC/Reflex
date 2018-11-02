@@ -39,8 +39,9 @@ public:
 
     virtual void loop() {
         for(byte i = 0; i < n_threads; ++i){
-            if (!(threads[i]->getFlag(EF_SUSPEND)))
+            if (!(threads[i]->getFlag(EF_SUSPEND))){
                 threads[i]->loop();
+            }
         }
     }
 
@@ -69,7 +70,7 @@ public:
         if (this->host)
             return host->fireEvent(event, param1, param2);
         else
-            return host->event(event, param1, param2);
+            return this->event(event, param1, param2);
     }
 
     virtual ~Host(){

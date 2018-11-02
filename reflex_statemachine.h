@@ -45,7 +45,7 @@ class StateMachine: public Thread
 {
 public: //members
     static const byte MAX_STATES = 16;
-    State* states[MAX_STATES - 1] = {0};
+    State* states[MAX_STATES] = {0};
     byte n_states = 0;
     byte current_state = State::UNDEFINED;
     byte pending_state = State::UNDEFINED; //the new state that will be entered on next poll
@@ -139,16 +139,16 @@ public: //other methods
     void changeState(byte state_number, byte message = 0){
         this->pending_state = state_number;
         this->about_to_change_state = 1;
-        this->message = 0;
+        this->message = message;
     }
 
     inline State* getStatePtr(byte state_number) const{
-        if(state_number >= 0 | state_number < this->n_states)
-            return 0;
-        else
+        if(state_number >= 0 && state_number < this->n_states){
             return this->states[state_number];
-
-    }
+        } else {
+            return 0;
+        }
+    };
 
     byte event(byte event, byte param1, byte param2){
         return sendEventToStates(event, param1, param2);

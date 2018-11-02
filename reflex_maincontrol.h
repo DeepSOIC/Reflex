@@ -33,6 +33,9 @@ public: //states
     public:
         void onEnter(State* from_state, byte message) {
             closeAllMainValves();
+            setLED(Reflex::EB_PLAY, 0);
+            setLED(Reflex::EB_PAUSE, 0);
+            setLED(Reflex::EB_STOP, 1);
         }
 
         byte event(byte event_type, byte param1, byte param2){
@@ -40,14 +43,6 @@ public: //states
                 switch(param2){
                 case Reflex::EB_PLAY:{
                     this->machine->changeState(EMS_Tank1);
-                    return 1;
-                }break;
-                case Reflex::EB_PAUSE:{
-                    this->machine->changeState(EMS_Suspend);
-                    return 1;
-                }break;
-                case Reflex::EB_STOP:{
-                    this->machine->changeState(EMS_Idle);
                     return 1;
                 }break;
                 };
@@ -84,6 +79,10 @@ public: //states
             openMainValve(Reflex::eMainValves::EMV_OUTFLOW);
             if(message != EM_Resume)
                 is_last = (message == EM_LastTank);
+
+            setLED(Reflex::EB_PLAY, 1);
+            setLED(Reflex::EB_PAUSE, 0);
+            setLED(Reflex::EB_STOP, 0);
         }
 
         byte event(byte event_type, byte param1, byte param2){
@@ -132,6 +131,10 @@ public: //states
         virtual void onEnter(State* from_state, byte message){
             closeAllMainValves();
             last_state = from_state->state_number;
+
+            setLED(Reflex::EB_PLAY, 0);
+            setLED(Reflex::EB_PAUSE, 1);
+            setLED(Reflex::EB_STOP, 0);
         }
 
         byte event(byte event_type, byte param1, byte param2){
@@ -165,6 +168,10 @@ public: //states
 
             if(message == EM_Fault_Receiver_Full)
                 Log::logLn(F("Fault: receiver full"));
+
+            setLED(Reflex::EB_PLAY, 0);
+            setLED(Reflex::EB_PAUSE, 1);
+            setLED(Reflex::EB_STOP, 1);
         }
     };
 
