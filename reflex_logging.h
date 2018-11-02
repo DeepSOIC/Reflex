@@ -7,6 +7,7 @@ namespace Log{
 
 void init(){
     Serial.begin(9600);
+    Serial.println(F("Boot!"));
 }
 
 void _printlnPGM(Print &p, const char* pgm_s){
@@ -31,6 +32,7 @@ void log(const __FlashStringHelper* str){
 
 void logLn(const __FlashStringHelper* str){
     Serial.println(str);
+    Serial.flush();
 }
 
 void log_pgm(const char* pgm_s){
@@ -39,6 +41,7 @@ void log_pgm(const char* pgm_s){
 
 void logLn_pgm(const char* pgm_s){
     _printlnPGM(Serial, pgm_s);
+    Serial.flush();
 }
 
 void log(byte number){
@@ -47,6 +50,7 @@ void log(byte number){
 
 void logLn(byte number){
     Serial.println(number);
+    Serial.flush();
 }
 
 void log_ram(const char* ram_s){
@@ -55,6 +59,7 @@ void log_ram(const char* ram_s){
 
 void logLn_ram(const char* ram_s){
     Serial.println(ram_s);
+    Serial.flush();
 }
 
 } //namespace
