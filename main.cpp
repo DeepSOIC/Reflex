@@ -20,6 +20,8 @@ void setup(){
     thehost.add(&r_column_control);
     l_column_control.init(Reflex::ES_L, F("Left Column"));
     r_column_control.init(Reflex::ES_R, F("Right Column"));
+    l_column_control.changeState(MainControlMachine::EMS_Idle);
+    r_column_control.changeState(MainControlMachine::EMS_Idle);
     thehost.add(&kbd);
 }
 
