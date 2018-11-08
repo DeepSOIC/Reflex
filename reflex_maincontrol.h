@@ -117,7 +117,7 @@ public: //states
             if(readMainSensor(Reflex::eMainSensors::EMS_COLUMN) == 0){
                 this->machine->changeState(EMS_Fault, EM_Fault_ColumnLevel);
             }
-            if (readMainSensor(Reflex::eMainSensors::EMS_RECEIVER) == 0){
+            if (readMainSensor(Reflex::eMainSensors::EMS_RECEIVER) == 1){
                 this->machine->changeState(EMS_Fault, EM_Fault_Receiver_Full);
             }
         }
